@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:jpx.gitbook.io)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+    "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c \"$player = New-Object System.Media.SoundPlayer '.claude\\sounds\\notification.wav'; $player.PlaySync()\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c \"$player = New-Object System.Media.SoundPlayer '.claude\\sounds\\notification.wav'; $player.PlaySync()\""
+          }
+        ]
+      }
+    ]
+  },
+}
