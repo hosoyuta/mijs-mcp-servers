@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:jpx.gitbook.io)"
+      "WebFetch(domain:jpx.gitbook.io)",
+      "SlashCommand(/tsumiki:tdd-requirements)",
+      "SlashCommand(/tsumiki:tdd-testcases)",
+      "SlashCommand(/tsumiki:tdd-red)",
+      "SlashCommand(/tsumiki:tdd-green)",
+      "SlashCommand(/tsumiki:tdd-refactor)",
+      "SlashCommand(/tsumiki:tdd-verify-complete)",
+      "SlashCommand(/tsumiki:tdd-requirements:*)",
+      "Bash(test:*)",
+      "Bash(npm run build:*)",
+      "Read(//c/Users/J34487/AppData/Roaming/Claude/logs/**)",
+      "Bash(node --version:*)",
+      "Bash(node:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
