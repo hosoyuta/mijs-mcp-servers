@@ -114,13 +114,13 @@ export async function startMCPServer(): Promise<Server> {
     // 【ツール2】: get_stock_price 🔵
     {
       name: 'get_stock_price',
-      description: '指定銘柄の日次株価データを取得します',
+      description: '指定銘柄の株価データ（日足・終値・始値・高値・安値・出来高）を取得します。トヨタ自動車(7203)やソニー(6758)などの株価情報を取得する際に使用します。銘柄コード（4桁の数字）が必要です。',
       inputSchema: {
         type: 'object',
         properties: {
           code: {
             type: 'string',
-            description: '銘柄コード（4桁、例: 7203）',
+            description: '銘柄コード（4桁の数字、例: トヨタ自動車=7203、ソニー=6758、任天堂=7974）',
           },
           from_date: {
             type: 'string',
@@ -156,13 +156,13 @@ export async function startMCPServer(): Promise<Server> {
     // 【ツール4】: get_company_info 🔵
     {
       name: 'get_company_info',
-      description: '指定銘柄の企業情報と最新株価を取得します',
+      description: '指定銘柄の企業情報（会社名・業種・市場区分）と最新株価（今日の株価・現在値）を取得します。「トヨタ自動車の今日の株価」のように最新の株価情報を取得する際に最適です。銘柄コード（4桁の数字）が必要です。',
       inputSchema: {
         type: 'object',
         properties: {
           code: {
             type: 'string',
-            description: '銘柄コード（4桁）',
+            description: '銘柄コード（4桁の数字、例: トヨタ自動車=7203、ソニー=6758、任天堂=7974）',
           },
         },
         required: ['code'],

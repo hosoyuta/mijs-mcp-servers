@@ -139,8 +139,12 @@ export class JQuantsClient {
         market = 'Other' as Company['market'];
       }
 
+      // 【銘柄コード正規化】: APIは5桁形式("72030")を返すが、4桁形式("7203")に正規化
+      // 🔵 信頼性レベル: 青信号（実際のAPI動作に基づく）
+      const normalizedCode = raw.Code.substring(0, 4);
+
       return {
-        code: raw.Code,
+        code: normalizedCode,
         name: raw.CompanyName,
         market,
         sector: raw.Sector33Code as Company['sector'],
@@ -155,7 +159,8 @@ export class JQuantsClient {
    * 【機能概要】: GET /prices/daily_quotes を呼び出し、StockPrice[]型のレスポンスを取得
    * 【実装方針】: 共通ヘルパーメソッドでクエリパラメータを構築
    * 【改善内容】: buildQueryParams()により重複コードを削減
-   * 🔵 信頼性レベル: 青信号（要件定義書、テストケースに基づく）
+   * 【APIレスポンス形式】: J-Quants APIは { daily_quotes: RawStockPrice[] } 形式で返すため、.daily_quotesを抽出
+   * 🔵 信頼性レベル: 青信号（要件定義書、テストケース、実際のAPI応答に基づく）
    *
    * @param code - 銘柄コード（4桁数字）
    * @param from - 開始日（YYYY-MM-DD形式、オプション）
@@ -167,8 +172,44 @@ export class JQuantsClient {
     from?: string,
     to?: string
   ): Promise<StockPrice[]> {
+    // 【APIレスポンス型定義】: J-Quants APIが返すPascalCase形式のraw data
+    // 🔵 信頼性レベル: 青信号（実際のAPI応答形式に基づく）
+    interface RawStockPrice {
+      Date: string;
+      Code: string;
+      Open: number;
+      High: number;
+      Low: number;
+      Close: number;
+      Volume: number;
+      TurnoverValue?: number;
+      AdjustmentClose?: number;
+    }
+
     const queryString = this.buildQueryParams({ code, from, to });
-    return this.request<StockPrice[]>(`/prices/daily_quotes?${queryString}`);
+    const response = await this.request<{ daily_quotes: RawStockPrice[] }>(
+      `/prices/daily_quotes?${queryString}`
+    );
+
+    // 【フィールド名変換とマッピング】: APIレスポンスをStockPrice型に変換
+    // 🔵 PascalCase → camelCase マッピング
+    return response.daily_quotes.map((raw) => {
+      // 【銘柄コード正規化】: APIは5桁形式("72030")を返すが、4桁形式("7203")に正規化
+      // 🔵 信頼性レベル: 青信号（実際のAPI動作に基づく）
+      const normalizedCode = raw.Code.substring(0, 4);
+
+      return {
+        code: normalizedCode,
+        date: raw.Date,
+        open: raw.Open,
+        high: raw.High,
+        low: raw.Low,
+        close: raw.Close,
+        volume: raw.Volume,
+        turnover: raw.TurnoverValue,
+        adjusted_close: raw.AdjustmentClose,
+      };
+    });
   }
 
   /**
@@ -194,19 +235,49 @@ export class JQuantsClient {
   /**
    * 【企業情報取得】: 指定銘柄の企業情報を取得
    *
-   * 【機能概要】: GET /listed/info/{code} を呼び出し、CompanyInfo型のレスポンスを取得
-   * 【実装方針】: パスパラメータを使用し、request()メソッドでHTTP通信を実行
+   * 【機能概要】: 企業情報と最新株価を組み合わせて取得
+   * 【実装方針】: getListedInfo()とgetDailyQuotes()を組み合わせて企業情報+最新株価を返す
+   * 【APIエンドポイント変更理由】: /listed/info/{code}エンドポイントが存在しないため、
+   *                               /listed/infoで全件取得してフィルタリングする方式に変更
    * 【テスト対応】: TC-NORMAL-005, TC-NORMAL-009
-   * 🔵 信頼性レベル: 青信号（要件定義書、テストケースに基づく）
+   * 🔵 信頼性レベル: 青信号（実際のAPI動作に基づく）
    *
    * @param code - 銘柄コード（4桁数字）
    * @returns Promise<CompanyInfo> - 企業情報データ
    */
   async getCompanyInfo(code: string): Promise<CompanyInfo> {
-    // 【HTTP GET実行】: /listed/info/{code}エンドポイントにGETリクエストを送信
-    // 【パスパラメータ使用】: 銘柄コードをURLパスに含める
-    // 🔵 信頼性レベル: 青信号（J-Quants API仕様に基づく）
-    return this.request<CompanyInfo>(`/listed/info/${code}`);
+    // 【企業情報取得】: getListedInfo()で全銘柄情報を取得し、指定コードでフィルタリング
+    // 🔵 信頼性レベル: 青信号（J-Quants API実装に基づく）
+    const allCompanies = await this.getListedInfo();
+    const company = allCompanies.find((c) => c.code === code);
+
+    if (!company) {
+      throw new Error(`指定された銘柄コード（${code}）は存在しません`);
+    }
+
+    // 【最新株価取得】: getDailyQuotes()で株価データを取得
+    // 🔵 信頼性レベル: 青信号（get-company-info.tsツールと同じパターン）
+    const prices = await this.getDailyQuotes(code);
+
+    // 【最新株価抽出】: reduce()で最新日の株価を抽出（O(n)で効率的）
+    // 🔵 信頼性レベル: 青信号（パフォーマンス最適化済み）
+    let latest_price: number | undefined = undefined;
+    if (prices.length > 0) {
+      const latestPrice = prices.reduce((latest, current) =>
+        current.date > latest.date ? current : latest
+      );
+      latest_price = latestPrice.close;
+    }
+
+    // 【結果返却】: CompanyInfo型で企業情報+最新株価を返す
+    // 🔵 信頼性レベル: 青信号（CompanyInfo型定義に準拠）
+    return {
+      code: company.code,
+      name: company.name,
+      market: company.market,
+      sector: company.sector,
+      latest_price,
+    };
   }
 
   /**
