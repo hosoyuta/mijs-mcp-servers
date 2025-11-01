@@ -343,7 +343,7 @@ interface User {
 
 #### Day 2: FileReader実装
 
-##### - [ ] TASK-0105: FileReader基本実装 (TDD Red)
+##### - [x] TASK-0105: FileReader基本実装 (TDD Red) ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 3時間
 - **要件名**: code-analysis
@@ -404,7 +404,7 @@ describe("FileReader", () => {
 
 ---
 
-##### - [ ] TASK-0106: FileReader実装 (TDD Green)
+##### - [x] TASK-0106: FileReader実装 (TDD Green) ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 3時間
 - **要件名**: code-analysis
@@ -718,7 +718,7 @@ export class PathResolver {
 
 #### Day 4: ワークスペース検証機能
 
-##### - [ ] TASK-0111: WorkspaceValidator実装 (TDD Red→Green)
+##### - [x] TASK-0111: WorkspaceValidator実装 (TDD Red→Green) ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 4時間
 - **要件名**: code-analysis
@@ -785,7 +785,7 @@ export class WorkspaceValidator {
 
 ---
 
-##### - [ ] TASK-0112: File System層統合テスト
+##### - [x] TASK-0112: File System層統合テスト ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 3時間
 - **要件名**: code-analysis
@@ -1025,7 +1025,7 @@ describe("パフォーマンステスト", () => {
 
 #### Day 6: CompilerHost実装
 
-##### - [ ] TASK-0117: CompilerHost基本実装 (TDD Red)
+##### - [x] TASK-0117: CompilerHost基本実装 (TDD Red) ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 3時間
 - **要件名**: code-analysis
@@ -1092,7 +1092,7 @@ describe("CompilerHost", () => {
 
 ---
 
-##### - [ ] TASK-0118: CompilerHost実装 (TDD Green)
+##### - [x] TASK-0118: CompilerHost実装 (TDD Green) ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 4時間
 - **要件名**: code-analysis
@@ -1186,7 +1186,7 @@ export class CompilerHost {
 
 ---
 
-##### - [ ] TASK-0119: CompilerHost Refactor + Diagnostics
+##### - [x] TASK-0119: CompilerHost Refactor + Diagnostics ✅ **完了**
 - **タスクタイプ**: TDD
 - **推定工数**: 1時間
 - **要件名**: code-analysis
