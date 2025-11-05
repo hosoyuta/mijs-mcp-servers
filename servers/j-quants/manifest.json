@@ -1,0 +1,35 @@
+{
+  "manifest_version": "0.1",
+  "name": "j-quants-mcp-server",
+  "display_name": "J-Quants MCP Server",
+  "version": "1.0.0",
+  "description": "J-Quants MCP Server for Claude - Japanese stock market data integration. Provides access to Japanese stock prices, company information, financial statements, and listed companies data via J-Quants API.",
+  "author": {
+    "name": "MIJS 2025 Autumn Training Camp"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/mijs-dev/mijs-mcp-servers",
+  "compatibility": {
+    "claude_desktop": ">=0.10.0"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "J_QUANTS_REFRESH_TOKEN": "${user_config.j_quants_refresh_token}"
+      }
+    }
+  },
+  "user_config": {
+    "j_quants_refresh_token": {
+      "type": "string",
+      "title": "J-Quants Refresh Token",
+      "description": "Your J-Quants API Refresh Token for authentication",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}
