@@ -1,8 +1,6 @@
 docs:
-design
-spec
-tasks
-tech-stack.md
+api	reports  tasks		testing		    verification
+design	spec	 tech-stack.md	troubleshooting.md
 
 docs/design:
 code-analysis
