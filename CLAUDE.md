@@ -14,8 +14,17 @@ MIJS MCP Servers は、MIJS（Made in Japan Software）コミュニティの2025
 プロジェクトの特徴:
 - 公開リポジトリ（機密情報をコミットしない）
 - 教育・プロトタイプ目的（セキュリティ実装は最小限）
+- Claude Code (claude.ai/code) を活用したAI支援開発を推奨
 - 複数の貢献者が独立したMCPサーバーを開発
 - 各サーバーは `servers/` ディレクトリ配下に独立して配置
+
+### 開発スタイル
+
+このプロジェクトでは、Claude Codeを活用した開発を推奨しています:
+- AIアシスタントとのペアプログラミング
+- 自動テスト生成とコード品質チェック
+- ドキュメント生成の支援
+- MCPプロトコルの実装サポート
 
 ## 技術スタック
 
@@ -32,15 +41,26 @@ MIJS MCP Servers は、MIJS（Made in Japan Software）コミュニティの2025
 
 ```
 mijs-mcp-servers/
+├── .claude/                # Claude Code設定（hooks、permissions）
+│   ├── settings.local.json
+│   └── sounds/
 ├── servers/
-│   ├── example-server/     # サンプルMCPサーバーテンプレート
+│   ├── example-server/     # 最小限のMCPサーバーテンプレート
+│   │   ├── src/
+│   │   │   └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
 │   └── your-server/        # 個別の貢献者サーバー
 ├── docs/
 │   ├── tech-stack.md       # 技術スタック決定の詳細
 │   ├── getting-started.md  # セットアップ手順
 │   └── mcp-basics.md       # MCPプロトコルの基礎
-└── shared/                 # 共通ユーティリティ（オプション）
+├── shared/                 # 共通ユーティリティ（オプション、未実装）
+├── CLAUDE.md               # AI支援開発用のプロジェクトガイド
+└── README.md               # プロジェクト概要
 ```
+
+**注意**: `example-server` は基本的な構造のみを提供する最小限のテンプレートです。完全な実装例は個別のサーバーを参照してください。
 
 ## 共通コマンド
 
@@ -72,6 +92,8 @@ npm run format          # Prettierでコードフォーマット
 
 ### Gitワークフロー
 
+#### 通常の開発ワークフロー
+
 ```bash
 # フィーチャーブランチ作成
 git checkout -b username/server-name
@@ -84,7 +106,23 @@ git push origin username/server-name
 # mainにマージする前にレビュー用PRを作成
 ```
 
-ブランチ命名規則: `username/server-name` （例: `hosoyuta/weather-server`）
+**ブランチ命名規則**: `username/server-name` （例: `hosoyuta/weather-server`）
+
+#### Claude Code使用時のワークフロー
+
+Claude Code (claude.ai/code) を使用する場合、特別なブランチ命名規則が適用されます:
+
+```bash
+# Claude Codeは自動的に以下の形式のブランチを作成します
+claude/claude-md-{session-id}
+
+# 例: claude/claude-md-mi5a5il7lvh8m2o5-01YHSTch7XsXs3pkZAKW2Rao
+```
+
+**重要**: Claude Codeで作業する場合:
+- ブランチは自動的に作成されます（手動作成不要）
+- 作業完了後は手動で通常のフィーチャーブランチへマージするか、PRを作成してください
+- セッション終了後のブランチ管理に注意してください
 
 ## アーキテクチャパターン
 
@@ -167,6 +205,28 @@ LOG_LEVEL=info
 
 **重要**: `.env` ファイルはgitignoreされており、決してコミットしないでください。
 
+### データストレージディレクトリの.gitignore設定
+
+各MCPサーバーで `data/` ディレクトリを使用する場合、`.gitignore` に追加することを強く推奨します:
+
+```bash
+# サーバー固有の .gitignore に追加
+data/
+*.json  # データファイル（必要に応じて）
+```
+
+または、ルートレベルの `.gitignore` に以下を追加:
+
+```bash
+# サーバーのデータディレクトリ
+servers/*/data/
+```
+
+**理由**:
+- トークンキャッシュや一時データが含まれる可能性
+- 個人の開発環境固有のデータを除外
+- リポジトリサイズの肥大化を防止
+
 ## Claude Desktopとの統合
 
 Claude DesktopでMCPサーバーをテストするには:
@@ -187,6 +247,45 @@ Claude DesktopでMCPサーバーをテストするには:
 }
 ```
 4. Claude Desktopを再起動
+
+## Claude Code設定（.claude/ディレクトリ）
+
+このリポジトリには `.claude/` ディレクトリが含まれており、Claude Code (claude.ai/code) 使用時の動作をカスタマイズできます。
+
+### 設定ファイル: `.claude/settings.local.json`
+
+```json
+{
+  "permissions": {
+    "allow": ["WebFetch(domain:example.com)"],  // 許可するドメイン
+    "deny": [],                                   // 拒否するアクション
+    "ask": []                                     // 確認が必要なアクション
+  },
+  "hooks": {
+    "Notification": [...],  // 通知時に実行するコマンド
+    "SessionEnd": [...]     // セッション終了時に実行するコマンド
+  }
+}
+```
+
+### 利用可能な設定
+
+1. **Permissions（権限）**:
+   - 外部APIへのアクセス許可
+   - 特定のツールや操作の制限
+   - セキュリティポリシーの定義
+
+2. **Hooks（フック）**:
+   - `SessionStart`: セッション開始時
+   - `SessionEnd`: セッション終了時
+   - `Notification`: 通知発生時
+   - カスタムコマンドやスクリプトの実行
+
+3. **Sounds（サウンド）**:
+   - `.claude/sounds/` ディレクトリに通知音を配置可能
+   - フックから再生可能
+
+**注意**: `.claude/settings.local.json` は個人設定なので、プロジェクト固有の設定が必要な場合は別途文書化してください。
 
 ## 重要な制約
 
@@ -238,7 +337,13 @@ Claude DesktopでMCPサーバーをテストするには:
 
 ## 参考リンク
 
+### MCP関連
 - [MCP公式ドキュメント](https://modelcontextprotocol.io/)
 - [MCP仕様](https://spec.modelcontextprotocol.io/)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [MCPサーバー例](https://github.com/modelcontextprotocol/servers)
+
+### Claude Code関連
+- [Claude Code公式サイト](https://claude.ai/code)
+- [Claude Codeドキュメント](https://docs.claude.com/en/docs/claude-code)
+- [Claude Code設定ガイド](https://docs.claude.com/en/docs/claude-code/configuration)
